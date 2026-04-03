@@ -22,12 +22,13 @@ export default function ListingDetail() {
   const [deleting, setDeleting]   = useState(false);
 
   // Review state
-  const [canReview, setCanReview]       = useState(false);
-  const [reviewRating, setReviewRating] = useState(0);
-  const [reviewHover, setReviewHover]   = useState(0);
-  const [reviewComment, setReviewComment] = useState("");
+  const [canReview, setCanReview]           = useState(false);
+  const [hasOrderWithSeller, setHasOrderWithSeller] = useState(false);
+  const [reviewRating, setReviewRating]     = useState(0);
+  const [reviewHover, setReviewHover]       = useState(0);
+  const [reviewComment, setReviewComment]   = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewDone, setReviewDone]     = useState(false);
+  const [reviewDone, setReviewDone]         = useState(false);
 
   useEffect(() => {
     listingService.getById(id)
@@ -44,10 +45,11 @@ export default function ListingDetail() {
       api.get(`/saved/${id}`).then(({ data }) => setSaved(data.saved)).catch(() => {});
       // Check if user has a completed order with this seller → can review
       api.get("/orders").then(({ data }) => {
-        const hasCompleted = data.orders.some(
-          (o) => o.seller_id === listing.seller?.id && o.status === "completed"
-        );
-        setCanReview(hasCompleted);
+        const orders = data.orders || [];
+        const anyOrder = orders.some((o) => o.seller_id === listing.seller?.id);
+        const completed = orders.some((o) => o.seller_id === listing.seller?.id && o.status === "completed");
+        setHasOrderWithSeller(anyOrder);
+        setCanReview(completed);
       }).catch(() => {});
     }
   }, [user, listing, id]);
@@ -281,7 +283,13 @@ export default function ListingDetail() {
                 <Heart className={`w-4 h-4 ${saved ? "fill-red-500 text-red-500" : ""}`} />
                 {saved ? "Saved" : "Save"}
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 border border-gray-300 rounded-xl py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-colors">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast.success("Link copied!");
+                }}
+                className="flex-1 flex items-center justify-center gap-2 border border-gray-300 rounded-xl py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-colors"
+              >
                 <Share2 className="w-4 h-4" /> Share
               </button>
             </div>
@@ -325,6 +333,13 @@ export default function ListingDetail() {
           <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 mx-auto transition-colors">
             <Flag className="w-3 h-3" /> Report this listing
           </button>
+
+          {/* ── Review hint for buyers with a pending/in-progress order ── */}
+          {user && !isOwnListing && hasOrderWithSeller && !canReview && !reviewDone && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
+              <p className="text-xs text-yellow-700 font-medium">You can leave a review once the seller marks your order as completed.</p>
+            </div>
+          )}
 
           {/* ── Review Form (buyers with completed order) ── */}
           {canReview && !isOwnListing && (

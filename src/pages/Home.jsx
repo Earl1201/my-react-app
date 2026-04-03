@@ -125,14 +125,14 @@ export default function Home() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-14 px-4 text-center">
+      {/* <section className="py-14 px-4 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-3">Ready to get started?</h2>
         <p className="text-gray-500 mb-6">Join your neighbors on NeighborHub — it&apos;s free.</p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link to="/register" className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">Sign Up Free</Link>
           <Link to="/listings" className="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-colors">Browse Listings</Link>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

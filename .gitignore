@@ -1,3 +1,17 @@
+# Environment variables — never commit these
+.env
+.env.local
+.env.production
+server/.env
+
+# Uploaded images (ephemeral on Render)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Generated files
+generate_pptx.py
+NeighborHub_Presentation.pptx
+
 # Logs
 logs
 *.log

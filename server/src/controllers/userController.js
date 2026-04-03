@@ -31,15 +31,15 @@ export const getUserById = async (req, res, next) => {
       return res.status(404).json({ error: "User not found." });
     }
 
-    // 2. Fetch their active listings
+    // 2. Fetch their listings (active + sold — not deleted/inactive)
     const [listings] = await pool.query(
-      `SELECT l.id, l.title, l.price, l.price_type, l.status,
+      `SELECT l.id, l.title, l.price, l.price_type, l.status, l.listing_type,
               l.created_at, c.name AS category,
               (SELECT image_url FROM listing_images WHERE listing_id = l.id ORDER BY sort_order LIMIT 1) AS image
        FROM listings l
        LEFT JOIN categories c ON l.category_id = c.id
-       WHERE l.user_id = ? AND l.status = 'active'
-       ORDER BY l.created_at DESC`,
+       WHERE l.user_id = ? AND l.status IN ('active', 'sold')
+       ORDER BY l.status ASC, l.created_at DESC`,
       [id]
     );
 

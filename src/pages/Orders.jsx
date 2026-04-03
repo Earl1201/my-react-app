@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Package, ShoppingBag, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
@@ -23,11 +23,57 @@ const BUYER_NEXT = {
   confirmed: ["cancelled"],
 };
 
+const STATUS_LABELS = {
+  confirmed:   "Confirm Order",
+  in_progress: "Mark In Progress",
+  completed:   "Mark Completed",
+  cancelled:   "Cancel Order",
+};
+
+function StatusDropdown({ orderId, nextStatuses, updating, onUpdate }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  if (!nextStatuses.length) return null;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={updating === orderId}
+        className="flex items-center gap-1.5 text-xs font-medium border border-gray-300 hover:border-primary-400 hover:text-primary-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+      >
+        {updating === orderId ? "Updating..." : "Update Status"}
+        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 min-w-[160px] overflow-hidden">
+          {nextStatuses.map((s) => (
+            <button
+              key={s}
+              onClick={() => { onUpdate(orderId, s); setOpen(false); }}
+              className="w-full text-left px-4 py-2.5 text-xs hover:bg-primary-50 hover:text-primary-700 transition-colors"
+            >
+              {STATUS_LABELS[s] || s.replace("_", " ")}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Orders() {
-  const [tab, setTab]             = useState("buying");
-  const [orders, setOrders]       = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [updating, setUpdating]   = useState(null);
+  const [tab, setTab]           = useState("buying");
+  const [orders, setOrders]     = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [updating, setUpdating] = useState(null);
 
   const fetchOrders = async (t = tab) => {
     setLoading(true);
@@ -49,7 +95,7 @@ export default function Orders() {
     setUpdating(orderId);
     try {
       await orderService.updateStatus(orderId, status);
-      toast.success(`Order marked as ${status}.`);
+      toast.success(`Order marked as ${status.replace("_", " ")}.`);
       fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.error || "Could not update order.");
@@ -99,25 +145,32 @@ export default function Orders() {
               ? (BUYER_NEXT[order.status] || [])
               : (SELLER_NEXT[order.status] || []);
 
-            const otherName  = tab === "buying" ? order.seller_name : order.buyer_name;
+            const otherName   = tab === "buying" ? order.seller_name  : order.buyer_name;
             const otherAvatar = tab === "buying" ? order.seller_avatar : order.buyer_avatar;
+
+            // Build full image URL
+            const imgUrl = order.listing_image
+              ? `http://localhost:5000/uploads/${order.listing_image}`
+              : null;
 
             return (
               <div key={order.id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col sm:flex-row gap-4">
-                {/* Image */}
-                <div className="w-full sm:w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                  {order.listing_image ? (
-                    <img src={`/uploads/${order.listing_image}`} alt={order.listing_title} className="w-full h-full object-cover" />
+                {/* Thumbnail */}
+                <Link to={`/listings/${order.listing_id}`} className="w-full sm:w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0 block">
+                  {imgUrl ? (
+                    <img src={imgUrl} alt={order.listing_title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display="none"; }} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
                   )}
-                </div>
+                </Link>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">{order.listing_title}</p>
+                      <Link to={`/listings/${order.listing_id}`} className="font-semibold text-gray-900 text-sm hover:text-primary-600 transition-colors">
+                        {order.listing_title}
+                      </Link>
                       <div className="flex items-center gap-2 mt-1">
                         {otherAvatar ? (
                           <img src={otherAvatar} alt={otherName} className="w-5 h-5 rounded-full object-cover" />
@@ -143,28 +196,12 @@ export default function Orders() {
                       </span>
                     </div>
 
-                    {nextStatuses.length > 0 && (
-                      <div className="relative group">
-                        <button
-                          disabled={updating === order.id}
-                          className="flex items-center gap-1.5 text-xs font-medium border border-gray-300 hover:border-gray-400 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          {updating === order.id ? "Updating..." : "Update Status"}
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                        <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden group-hover:block min-w-[140px]">
-                          {nextStatuses.map((s) => (
-                            <button
-                              key={s}
-                              onClick={() => handleStatusChange(order.id, s)}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 capitalize"
-                            >
-                              {s.replace("_", " ")}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <StatusDropdown
+                      orderId={order.id}
+                      nextStatuses={nextStatuses}
+                      updating={updating}
+                      onUpdate={handleStatusChange}
+                    />
                   </div>
 
                   {order.notes && (

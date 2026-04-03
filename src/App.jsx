@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/common/Navbar.jsx";
 import Footer from "./components/common/Footer.jsx";
@@ -31,33 +31,40 @@ function NotFound() {
 
 const Guard = ({ children }) => <ProtectedRoute>{children}</ProtectedRoute>;
 
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <main key={location.pathname} className="flex-1 page-enter">
+      <Routes>
+        {/* Public */}
+        <Route path="/"             element={<Home />} />
+        <Route path="/listings"     element={<Listings />} />
+        <Route path="/listings/:id" element={<ListingDetail />} />
+        <Route path="/register"     element={<Register />} />
+        <Route path="/login"        element={<Login />} />
+        <Route path="/profile/:id"  element={<Profile />} />
+
+        {/* Protected */}
+        <Route path="/edit-profile"      element={<Guard><EditProfile /></Guard>} />
+        <Route path="/listings/:id/edit" element={<Guard><EditListing /></Guard>} />
+        <Route path="/profile"           element={<Guard><Profile /></Guard>} />
+        <Route path="/create-listing"    element={<Guard><CreateListing /></Guard>} />
+        <Route path="/messages"          element={<Guard><Messages /></Guard>} />
+        <Route path="/orders"            element={<Guard><Orders /></Guard>} />
+        <Route path="/admin"             element={<Guard><AdminDashboard /></Guard>} />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </main>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <div className="flex flex-col min-h-screen bg-white">
         <Navbar />
-        <main className="flex-1">
-          <Routes>
-            {/* Public */}
-            <Route path="/"             element={<Home />} />
-            <Route path="/listings"     element={<Listings />} />
-            <Route path="/listings/:id" element={<ListingDetail />} />
-            <Route path="/register"     element={<Register />} />
-            <Route path="/login"        element={<Login />} />
-            <Route path="/profile/:id"  element={<Profile />} />
-
-            {/* Protected */}
-            <Route path="/edit-profile"        element={<Guard><EditProfile /></Guard>} />
-            <Route path="/listings/:id/edit"   element={<Guard><EditListing /></Guard>} />
-            <Route path="/profile"        element={<Guard><Profile /></Guard>} />
-            <Route path="/create-listing" element={<Guard><CreateListing /></Guard>} />
-            <Route path="/messages"       element={<Guard><Messages /></Guard>} />
-            <Route path="/orders"         element={<Guard><Orders /></Guard>} />
-            <Route path="/admin"          element={<Guard><AdminDashboard /></Guard>} />
-
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+        <AnimatedRoutes />
         <Footer />
       </div>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />

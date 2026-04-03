@@ -3,37 +3,53 @@ import { MapPin, Star } from "lucide-react";
 import { formatPrice } from "../../utils/constants.js";
 
 export default function ListingCard({ listing }) {
-  const { id, title, price, priceType, type, category, city, barangay, images, seller, rating, reviewCount, condition } = listing;
+  const { id, title, price, priceType, price_type, type, listing_type, category,
+          city, barangay, images, image, seller, reviewCount, condition, status } = listing;
 
-  // images can be an array of { url, isPrimary } objects or plain strings (mock data)
-  const imgSrc = images?.[0]?.url || images?.[0] || "https://placehold.co/400x300?text=No+Image";
+  // Support both formats:
+  // - Full listing (from /api/listings): images = [{ url, isPrimary }]
+  // - Profile/saved listing (from /api/users/:id or /api/saved): image = filename string
+  let imgSrc = "https://placehold.co/400x300?text=No+Image";
+  if (images?.[0]?.url)  imgSrc = images[0].url;
+  else if (image)         imgSrc = image.startsWith("http") ? image : `http://localhost:5000/uploads/${image}`;
 
-  const sellerRating      = seller?.rating      ?? 0;
-  const sellerReviewCount = seller?.reviewCount ?? reviewCount ?? 0;
+  const resolvedType        = type        || listing_type || "product";
+  const resolvedPriceType   = priceType   || price_type   || "fixed";
+  const sellerRating        = seller?.rating      ?? 0;
+  const sellerReviewCount   = seller?.reviewCount ?? reviewCount ?? 0;
+  const isSold              = status === "sold";
 
   return (
     <Link
       to={`/listings/${id}`}
-      className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:border-primary-300 transition-all duration-200"
+      className={`group bg-white rounded-xl border overflow-hidden hover:shadow-md transition-all duration-200 ${
+        isSold ? "border-gray-200 opacity-75" : "border-gray-200 hover:border-primary-300"
+      }`}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={imgSrc}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-cover transition-transform duration-300 ${!isSold ? "group-hover:scale-105" : ""}`}
           onError={(e) => { e.target.src = "https://placehold.co/400x300?text=No+Image"; }}
         />
         <span className={`absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full ${
-          type === "service" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+          isSold
+            ? "bg-gray-800 text-white"
+            : resolvedType === "service"
+              ? "bg-blue-100 text-blue-700"
+              : "bg-green-100 text-green-700"
         }`}>
-          {type === "service" ? "Service" : condition === "new" ? "New" : "Used"}
+          {isSold ? "Sold" : resolvedType === "service" ? "Service" : condition === "new" ? "New" : "Used"}
         </span>
       </div>
 
       <div className="p-3">
         <p className="text-xs text-gray-500 mb-1">{category}</p>
         <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 mb-2">{title}</h3>
-        <p className="text-primary-600 font-bold text-base mb-2">{formatPrice(price, priceType)}</p>
+        <p className={`font-bold text-base mb-2 ${isSold ? "text-gray-400 line-through" : "text-primary-600"}`}>
+          {formatPrice(price, resolvedPriceType)}
+        </p>
 
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span className="flex items-center gap-1 truncate">

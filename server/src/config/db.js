@@ -2,6 +2,8 @@ import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const pool = mysql.createPool({
   host:     process.env.DB_HOST     || "localhost",
   port:     Number(process.env.DB_PORT) || 3306,
@@ -11,16 +13,20 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit:    10,
   queueLimit:         0,
+  // Railway and most cloud MySQL providers require SSL in production
+  ...(isProduction && {
+    ssl: { rejectUnauthorized: false },
+  }),
 });
 
 // Test the connection on startup
 pool.getConnection()
   .then((conn) => {
-    console.log("✅  MySQL connected to:", process.env.DB_NAME);
+    console.log("MySQL connected to:", process.env.DB_NAME);
     conn.release();
   })
   .catch((err) => {
-    console.error("❌  MySQL connection failed:", err.message);
+    console.error("MySQL connection failed:", err.message);
     process.exit(1);
   });
 
