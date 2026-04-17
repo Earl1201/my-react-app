@@ -5,15 +5,13 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true); // true while we validate a stored token
+  // Start loading=true only when a token exists so we never call setLoading synchronously in the effect
+  const [loading, setLoading] = useState(() => !!localStorage.getItem("nh_token"));
 
   // On first mount: if a token is in localStorage, verify it with /api/auth/me
   useEffect(() => {
     const token = localStorage.getItem("nh_token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) return; // loading is already false
     authService
       .getMe()
       .then(({ user }) => setUser(user))
@@ -29,6 +27,7 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (formData) => {
     const { token, user } = await authService.register(formData);
     localStorage.setItem("nh_token", token);
+    localStorage.setItem("nh_user", JSON.stringify(user));
     setUser(user);
     return user;
   }, []);
@@ -37,6 +36,7 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (formData) => {
     const { token, user } = await authService.login(formData);
     localStorage.setItem("nh_token", token);
+    localStorage.setItem("nh_user", JSON.stringify(user));
     setUser(user);
     return user;
   }, []);
@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
   // ── logout ───────────────────────────────────────────────────
   const logout = useCallback(() => {
     localStorage.removeItem("nh_token");
+    localStorage.removeItem("nh_user");
     setUser(null);
   }, []);
 
@@ -60,6 +61,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");

@@ -25,6 +25,7 @@ export default function Messages() {
         }
       })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load messages for active conversation + poll every 5s

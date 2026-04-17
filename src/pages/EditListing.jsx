@@ -68,6 +68,7 @@ export default function EditListing() {
     setSaving(true);
     try {
       await listingService.update(id, {
+        listingType: form.listingType,
         title:       form.title.trim(),
         description: form.description.trim(),
         price:       form.price,

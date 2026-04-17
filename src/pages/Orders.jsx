@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Package, ShoppingBag, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
@@ -75,7 +75,7 @@ export default function Orders() {
   const [loading, setLoading]   = useState(true);
   const [updating, setUpdating] = useState(null);
 
-  const fetchOrders = async (t = tab) => {
+  const fetchOrders = useCallback(async (t = tab) => {
     setLoading(true);
     try {
       const data = t === "buying"
@@ -87,9 +87,9 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tab]);
 
-  useEffect(() => { fetchOrders(tab); }, [tab]);
+  useEffect(() => { fetchOrders(tab); }, [tab, fetchOrders]);
 
   const handleStatusChange = async (orderId, status) => {
     setUpdating(orderId);

@@ -1,10 +1,6 @@
 import { validationResult } from "express-validator";
 import pool from "../config/db.js";
 
-// ── Helper: build full image URL ──────────────────────────────
-const imgUrl = (req, filename) =>
-  filename ? `${req.protocol}://${req.get("host")}/uploads/${filename}` : null;
-
 // ── Helper: format a listing row from DB ──────────────────────
 const formatListing = (row, images = []) => ({
   id:          row.id,

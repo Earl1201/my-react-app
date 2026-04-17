@@ -60,41 +60,41 @@ export default function Register() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="p-8 bg-white border border-gray-200 shadow-sm rounded-2xl">
 
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <span className="text-white font-bold text-sm">NH</span>
+          <div className="mb-8 text-center">
+            <div className="flex items-center justify-center w-10 h-10 mx-auto mb-3 bg-primary-600 rounded-xl">
+              <span className="text-sm font-bold text-white">NH</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-            <p className="text-gray-500 text-sm mt-1">Join your local community on NeighborHub</p>
+            <p className="mt-1 text-sm text-gray-500">Join your local community on NeighborHub</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <User className="absolute w-4 h-4 text-gray-400 -translate-y-1/2 left-3 top-1/2" />
                 <input
                   type="text"
-                  placeholder="e.g. Maria Santos"
+                  placeholder="e.g. Earl Baclohan"
                   value={form.name}
                   onChange={set("name")}
                   disabled={loading}
                   className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 ${errors.name ? "border-red-400" : "border-gray-300"}`}
                 />
               </div>
-              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+              {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Mail className="absolute w-4 h-4 text-gray-400 -translate-y-1/2 left-3 top-1/2" />
                 <input
                   type="email"
                   placeholder="you@example.com"
@@ -104,14 +104,14 @@ export default function Register() {
                   className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 ${errors.email ? "border-red-400" : "border-gray-300"}`}
                 />
               </div>
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute w-4 h-4 text-gray-400 -translate-y-1/2 left-3 top-1/2" />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Min. 8 characters"
@@ -120,18 +120,18 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-9 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 ${errors.password ? "border-red-400" : "border-gray-300"}`}
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute text-gray-400 -translate-y-1/2 right-3 top-1/2 hover:text-gray-600">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute w-4 h-4 text-gray-400 -translate-y-1/2 left-3 top-1/2" />
                 <input
                   type={showConfirm ? "text" : "password"}
                   placeholder="Re-enter your password"
@@ -140,37 +140,37 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-9 pr-10 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 ${errors.confirmPassword ? "border-red-400" : "border-gray-300"}`}
                 />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute text-gray-400 -translate-y-1/2 right-3 top-1/2 hover:text-gray-600">
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
             </div>
 
             {/* Location */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">City</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <MapPin className="absolute w-4 h-4 text-gray-400 -translate-y-1/2 left-3 top-1/2" />
                   <input
                     type="text"
-                    placeholder="e.g. Quezon City"
+                    placeholder="e.g. Mandaue City"
                     value={form.city}
                     onChange={set("city")}
                     disabled={loading}
                     className={`w-full pl-9 pr-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60 ${errors.city ? "border-red-400" : "border-gray-300"}`}
                   />
                 </div>
-                {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+                {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Barangay <span className="text-gray-400 font-normal">(optional)</span>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Barangay <span className="font-normal text-gray-400">(optional)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Batasan Hills"
+                  placeholder="e.g. Looc"
                   value={form.barangay}
                   onChange={set("barangay")}
                   disabled={loading}
@@ -180,22 +180,22 @@ export default function Register() {
             </div>
 
             {/* Terms */}
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs leading-relaxed text-gray-500">
               By signing up, you agree to our{" "}
-              <span className="text-primary-600 cursor-pointer hover:underline">Terms of Service</span>{" "}
+              <span className="cursor-pointer text-primary-600 hover:underline">Terms of Service</span>{" "}
               and{" "}
-              <span className="text-primary-600 cursor-pointer hover:underline">Privacy Policy</span>.
+              <span className="cursor-pointer text-primary-600 hover:underline">Privacy Policy</span>.
             </p>
 
             {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
+              className="flex items-center justify-center w-full gap-2 py-3 text-sm font-semibold text-white transition-colors bg-primary-600 hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl"
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin" />
                   Creating account...
                 </>
               ) : (
@@ -204,9 +204,9 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
+          <p className="mt-6 text-sm text-center text-gray-600">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
               Log in
             </Link>
           </p>

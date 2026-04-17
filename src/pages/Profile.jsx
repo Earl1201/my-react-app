@@ -37,6 +37,7 @@ export default function Profile() {
       })
       .catch(() => toast.error("Failed to load profile."))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileId]);
 
   if (loading) {

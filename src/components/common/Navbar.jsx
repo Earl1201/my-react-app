@@ -5,6 +5,14 @@ import toast from "react-hot-toast";
 import api from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
+const timeAgo = (dateStr) => {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60)    return "just now";
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+};
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen]       = useState(false);
   const [search, setSearch]           = useState("");
@@ -17,6 +25,7 @@ export default function Navbar() {
 
   // Fetch notifications & poll every 30s
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!user) { setNotifications([]); setUnreadCount(0); return; }
     const fetchNotifs = () => {
       api.get("/notifications")
@@ -59,14 +68,6 @@ export default function Navbar() {
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
       } catch { /* silent */ }
     }
-  };
-
-  const timeAgo = (dateStr) => {
-    const diff = (Date.now() - new Date(dateStr)) / 1000;
-    if (diff < 60)   return "just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
   };
 
   return (
