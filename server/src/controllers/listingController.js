@@ -173,21 +173,33 @@ export const createListing = async (req, res, next) => {
 
     const { title, description, price, priceType, listingType, condition, categoryId, city, barangay } = req.body;
 
-    const [result] = await pool.query(
-      `INSERT INTO listings (user_id, category_id, title, description, price, price_type, listing_type, \`condition\`, city, barangay)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.userId, categoryId, title, description, price, priceType || "fixed", listingType, condition || null, city || null, barangay || null]
-    );
-
-    const listingId = result.insertId;
-
-    // Save uploaded images
-    if (req.files && req.files.length > 0) {
-      const imgValues = req.files.map((file, idx) => [listingId, file.filename, idx === 0 ? 1 : 0, idx]);
-      await pool.query(
-        "INSERT INTO listing_images (listing_id, image_url, is_primary, sort_order) VALUES ?",
-        [imgValues]
+    // Atomic transaction: insert listing + images together
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
+    let listingId;
+    try {
+      const [result] = await conn.execute(
+        `INSERT INTO listings (user_id, category_id, title, description, price, price_type, listing_type, \`condition\`, city, barangay)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [req.userId, categoryId, title, description, price, priceType || "fixed", listingType, condition || null, city || null, barangay || null]
       );
+      listingId = result.insertId;
+
+      if (req.files && req.files.length > 0) {
+        for (let idx = 0; idx < req.files.length; idx++) {
+          await conn.execute(
+            "INSERT INTO listing_images (listing_id, image_url, is_primary, sort_order) VALUES (?, ?, ?, ?)",
+            [listingId, req.files[idx].filename, idx === 0 ? 1 : 0, idx]
+          );
+        }
+      }
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
     }
 
     res.status(201).json({ message: "Listing created.", listingId });

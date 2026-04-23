@@ -3,7 +3,10 @@
     "allow": [
       "Bash(mkdir -p \"c:/Users/Earl Brian/my-react-app/server/src/config\" \"c:/Users/Earl Brian/my-react-app/server/src/controllers\" \"c:/Users/Earl Brian/my-react-app/server/src/middleware\" \"c:/Users/Earl Brian/my-react-app/server/src/routes\")",
       "Bash(npm init:*)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(python gen_ppt.py)",
+      "Bash(del gen_ppt.py)"
     ]
   }
 }

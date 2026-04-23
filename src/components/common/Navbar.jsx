@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Bell, MessageCircle, Plus, LogOut, ShoppingBag, CheckCheck } from "lucide-react";
+import { Search, Menu, X, Bell, MessageCircle, Plus, LogOut, ShoppingBag, CheckCheck, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -160,6 +160,11 @@ export default function Navbar() {
                 <Link to="/orders" className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full" title="Orders">
                   <ShoppingBag className="w-5 h-5" />
                 </Link>
+                {user.role === "admin" && (
+                  <Link to="/admin" className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full" title="Admin Dashboard">
+                    <ShieldCheck className="w-5 h-5" />
+                  </Link>
+                )}
                 <Link to="/profile" className="flex items-center gap-2 hover:opacity-90">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover border-2 border-primary-500" />
@@ -233,6 +238,11 @@ export default function Navbar() {
                   <span className="ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
                 )}
               </Link>
+              {user.role === "admin" && (
+                <Link to="/admin" className="flex items-center gap-2 text-sm text-red-600 py-2 font-medium" onClick={() => setMenuOpen(false)}>
+                  <ShieldCheck className="w-4 h-4" /> Admin Dashboard
+                </Link>
+              )}
               <button onClick={handleLogout} className="flex items-center gap-2 text-sm text-red-600 py-2 w-full">
                 <LogOut className="w-4 h-4" /> Log out
               </button>

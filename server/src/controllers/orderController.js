@@ -21,21 +21,34 @@ export const createOrder = async (req, res, next) => {
     if (listing.user_id === req.userId) return res.status(400).json({ error: "You cannot order your own listing." });
 
     const totalPrice = parseFloat(listing.price) * Number(quantity);
-
-    const [result] = await pool.query(
-      `INSERT INTO orders (buyer_id, seller_id, listing_id, quantity, total_price, notes)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.userId, listing.user_id, listingId, quantity, totalPrice, notes || null]
-    );
-
-    // Notify the seller
     const [buyer] = await pool.query("SELECT name FROM users WHERE id = ?", [req.userId]);
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, 'new_order', ?, ?, ?)`,
-      [listing.user_id, "New order received", `${buyer[0]?.name} placed an order.`, `/orders`]
-    );
 
-    res.status(201).json({ message: "Order placed.", orderId: result.insertId });
+    // Atomic transaction: insert order + notification together
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
+    let orderId;
+    try {
+      const [result] = await conn.execute(
+        `INSERT INTO orders (buyer_id, seller_id, listing_id, quantity, total_price, notes)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [req.userId, listing.user_id, listingId, quantity, totalPrice, notes || null]
+      );
+      orderId = result.insertId;
+
+      await conn.execute(
+        `INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, 'new_order', ?, ?, ?)`,
+        [listing.user_id, "New order received", `${buyer[0]?.name} placed an order.`, `/orders`]
+      );
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+
+    res.status(201).json({ message: "Order placed.", orderId });
   } catch (err) {
     next(err);
   }

@@ -38,24 +38,31 @@ export const createReview = async (req, res, next) => {
       return res.status(409).json({ error: "You have already reviewed this seller for this listing." });
     }
 
-    await pool.query(
-      `INSERT INTO reviews (reviewer_id, seller_id, listing_id, rating, comment)
-       VALUES (?, ?, ?, ?, ?)`,
-      [req.userId, sellerId, listingId || null, rating, comment || null]
-    );
-
-    // Notify the seller
     const [reviewer] = await pool.query("SELECT name FROM users WHERE id = ?", [req.userId]);
-    await pool.query(
-      `INSERT INTO notifications (user_id, type, title, body, link)
-       VALUES (?, 'new_review', ?, ?, ?)`,
-      [
-        sellerId,
-        "New review received",
-        `${reviewer[0]?.name} left you a ${rating}-star review.`,
-        `/profile/${sellerId}`,
-      ]
-    );
+
+    // Atomic transaction: insert review + notification together
+    const conn = await pool.getConnection();
+    await conn.beginTransaction();
+    try {
+      await conn.execute(
+        `INSERT INTO reviews (reviewer_id, seller_id, listing_id, rating, comment)
+         VALUES (?, ?, ?, ?, ?)`,
+        [req.userId, sellerId, listingId || null, rating, comment || null]
+      );
+
+      await conn.execute(
+        `INSERT INTO notifications (user_id, type, title, body, link)
+         VALUES (?, 'new_review', ?, ?, ?)`,
+        [sellerId, "New review received", `${reviewer[0]?.name} left you a ${rating}-star review.`, `/profile/${sellerId}`]
+      );
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
 
     res.status(201).json({ message: "Review submitted." });
   } catch (err) {
