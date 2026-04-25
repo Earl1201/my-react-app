@@ -13,10 +13,6 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit:    10,
   queueLimit:         0,
-  // Railway and most cloud MySQL providers require SSL in production
-  ...(isProduction && {
-    ssl: { rejectUnauthorized: false },
-  }),
 });
 
 // Test the connection on startup
