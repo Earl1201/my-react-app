@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Eye, EyeOff, User, Mail, Lock, MapPin } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +15,8 @@ export default function Register() {
     name: "", email: "", password: "", confirmPassword: "", city: "", barangay: "",
   });
   const [errors, setErrors] = useState({});
+
+  if (user) return <Navigate to="/" replace />;
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 

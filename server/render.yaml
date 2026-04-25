@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: neighborhub-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set the following manually in the Render dashboard:
+      # PORT, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+      # JWT_SECRET, JWT_EXPIRES_IN, CLIENT_URL

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/common/Navbar.jsx";
 import Footer from "./components/common/Footer.jsx";
-import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import ProtectedRoute, { AdminRoute } from "./components/common/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx";
 import Listings from "./pages/Listings.jsx";
 import ListingDetail from "./pages/ListingDetail.jsx";
@@ -51,7 +51,7 @@ function AnimatedRoutes() {
         <Route path="/create-listing"    element={<Guard><CreateListing /></Guard>} />
         <Route path="/messages"          element={<Guard><Messages /></Guard>} />
         <Route path="/orders"            element={<Guard><Orders /></Guard>} />
-        <Route path="/admin"             element={<Guard><AdminDashboard /></Guard>} />
+        <Route path="/admin"             element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
