@@ -41,6 +41,15 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  // ── loginWithGoogle ──────────────────────────────────────────
+  const loginWithGoogle = useCallback(async (accessToken) => {
+    const { token, user } = await authService.googleLogin(accessToken);
+    localStorage.setItem("nh_token", token);
+    localStorage.setItem("nh_user", JSON.stringify(user));
+    setUser(user);
+    return user;
+  }, []);
+
   // ── updateUser ───────────────────────────────────────────────
   // Call this after a successful profile update so the navbar/context stays fresh
   const updateUser = useCallback((updatedUser) => {
@@ -55,7 +64,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, register, login, loginWithGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

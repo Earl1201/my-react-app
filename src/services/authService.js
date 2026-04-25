@@ -11,6 +11,11 @@ export const authService = {
     return res.data; // { token, user }
   },
 
+  async googleLogin(accessToken) {
+    const res = await api.post("/auth/google", { access_token: accessToken });
+    return res.data; // { token, user }
+  },
+
   async getMe() {
     const res = await api.get("/auth/me");
     return res.data; // { user }

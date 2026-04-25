@@ -113,6 +113,63 @@ export const login = async (req, res, next) => {
 };
 
 // ──────────────────────────────────────────────────────────────
+// POST /api/auth/google
+// ──────────────────────────────────────────────────────────────
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { access_token } = req.body;
+    if (!access_token) {
+      return res.status(400).json({ error: "Google access token is required." });
+    }
+
+    // Verify token and get user info from Google
+    const googleRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    if (!googleRes.ok) {
+      return res.status(401).json({ error: "Invalid or expired Google token." });
+    }
+
+    const { email, name, picture } = await googleRes.json();
+    if (!email) {
+      return res.status(400).json({ error: "Could not retrieve email from Google account." });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user already exists
+    const [existing] = await pool.query(
+      "SELECT * FROM users WHERE email = ?",
+      [normalizedEmail]
+    );
+
+    let user;
+    if (existing.length > 0) {
+      user = existing[0];
+      // Update avatar if the user doesn't have one yet
+      if (!user.avatar_url && picture) {
+        await pool.query("UPDATE users SET avatar_url = ? WHERE id = ?", [picture, user.id]);
+        user.avatar_url = picture;
+      }
+    } else {
+      // Create new account for first-time Google sign-in
+      const [result] = await pool.query(
+        `INSERT INTO users (name, email, password, avatar_url, is_verified)
+         VALUES (?, ?, ?, ?, 1)`,
+        [name || normalizedEmail.split("@")[0], normalizedEmail, "", picture || null]
+      );
+      const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [result.insertId]);
+      user = rows[0];
+    }
+
+    const token = signToken(user.id);
+    res.json({ token, user: safeUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────────────
 // GET /api/auth/me   (protected — requires JWT)
 // ──────────────────────────────────────────────────────────────
 export const getMe = async (req, res, next) => {
