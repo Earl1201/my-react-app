@@ -120,6 +120,8 @@ export default function AdminDashboard() {
   const [allOrders, setAllOrders] = useState([]);
   const [userActivity, setUserActivity] = useState([]);
   const [orderFilter, setOrderFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo]     = useState("");
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
@@ -186,9 +188,13 @@ export default function AdminDashboard() {
     { key: "listings",  label: `Listings (${listings.length})`, icon: <Package className="w-4 h-4" /> },
   ];
 
-  const filteredOrders = orderFilter === "all"
-    ? allOrders
-    : allOrders.filter((o) => o.status === orderFilter);
+  const filteredOrders = allOrders.filter((o) => {
+    const matchStatus = orderFilter === "all" || o.status === orderFilter;
+    const orderDate = new Date(o.created_at);
+    const matchFrom = !dateFrom || orderDate >= new Date(dateFrom);
+    const matchTo   = !dateTo   || orderDate <= new Date(dateTo + "T23:59:59");
+    return matchStatus && matchFrom && matchTo;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -376,7 +382,31 @@ export default function AdminDashboard() {
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
                   <h2 className="font-semibold text-gray-900">Transaction History</h2>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      title="From date"
+                    />
+                    <span className="text-xs text-gray-400">to</span>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      title="To date"
+                    />
+                    {(dateFrom || dateTo) && (
+                      <button
+                        onClick={() => { setDateFrom(""); setDateTo(""); }}
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                        title="Clear dates"
+                      >
+                        ✕ Clear
+                      </button>
+                    )}
                     <select
                       value={orderFilter}
                       onChange={(e) => setOrderFilter(e.target.value)}
