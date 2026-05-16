@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { validationResult } from "express-validator";
 import pool from "../config/db.js";
 
@@ -199,14 +199,11 @@ export const forgotPassword = async (req, res, next) => {
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    await transporter.sendMail({
-      from: `"NeighborHub" <${process.env.EMAIL_USER}>`,
-      to: normalizedEmail,
+    await resend.emails.send({
+      from: "NeighborHub <onboarding@resend.dev>",
+      to: [normalizedEmail],
       subject: "Reset your NeighborHub password",
       html: `
         <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">

@@ -1,6 +1,13 @@
 import { validationResult } from "express-validator";
 import pool from "../config/db.js";
 
+// If stored value is already a full URL (Cloudinary), use it directly.
+// If it's a bare filename (old local uploads), construct the legacy path.
+const toImageUrl = (value, req) =>
+  value && value.startsWith("http")
+    ? value
+    : `${req.protocol}://${req.get("host")}/uploads/${value}`;
+
 // ── Helper: format a listing row from DB ──────────────────────
 const formatListing = (row, images = []) => ({
   id:          row.id,
@@ -96,7 +103,7 @@ export const getAllListings = async (req, res, next) => {
     );
 
     const listings = rows.map((row) => formatListing(row, row.primary_image
-      ? [{ url: `${req.protocol}://${req.get("host")}/uploads/${row.primary_image}`, isPrimary: true }]
+      ? [{ url: toImageUrl(row.primary_image, req), isPrimary: true }]
       : []
     ));
 
@@ -123,7 +130,7 @@ export const getMyListings = async (req, res, next) => {
     );
 
     const listings = rows.map((row) => formatListing(row, row.primary_image
-      ? [{ url: `${req.protocol}://${req.get("host")}/uploads/${row.primary_image}`, isPrimary: true }]
+      ? [{ url: toImageUrl(row.primary_image, req), isPrimary: true }]
       : []
     ));
     res.json({ listings });
@@ -153,7 +160,7 @@ export const getListingById = async (req, res, next) => {
     );
 
     const images = imgRows.map((img) => ({
-      url:       `${req.protocol}://${req.get("host")}/uploads/${img.image_url}`,
+      url:       toImageUrl(img.image_url, req),
       isPrimary: !!img.is_primary,
     }));
 
@@ -187,9 +194,10 @@ export const createListing = async (req, res, next) => {
 
       if (req.files && req.files.length > 0) {
         for (let idx = 0; idx < req.files.length; idx++) {
+          // Cloudinary returns the full URL in file.path
           await conn.execute(
             "INSERT INTO listing_images (listing_id, image_url, is_primary, sort_order) VALUES (?, ?, ?, ?)",
-            [listingId, req.files[idx].filename, idx === 0 ? 1 : 0, idx]
+            [listingId, req.files[idx].path, idx === 0 ? 1 : 0, idx]
           );
         }
       }
