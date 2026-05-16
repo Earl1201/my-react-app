@@ -20,4 +20,14 @@ export const authService = {
     const res = await api.get("/auth/me");
     return res.data; // { user }
   },
+
+  async forgotPassword(email) {
+    const res = await api.post("/auth/forgot-password", { email });
+    return res.data;
+  },
+
+  async resetPassword(token, password) {
+    const res = await api.post("/auth/reset-password", { token, password });
+    return res.data;
+  },
 };

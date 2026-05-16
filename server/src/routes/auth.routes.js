@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { register, login, googleAuth, getMe } from "../controllers/authController.js";
+import { register, login, googleAuth, getMe, forgotPassword, resetPassword } from "../controllers/authController.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();
@@ -35,9 +35,11 @@ const loginRules = [
 ];
 
 // ── Routes ────────────────────────────────────────────────────
-router.post("/register", registerRules, register);
-router.post("/login",    loginRules,    login);
-router.post("/google",                 googleAuth);
-router.get("/me",        protect,       getMe);
+router.post("/register",        registerRules, register);
+router.post("/login",           loginRules,    login);
+router.post("/google",                         googleAuth);
+router.get("/me",               protect,       getMe);
+router.post("/forgot-password",                forgotPassword);
+router.post("/reset-password",                 resetPassword);
 
 export default router;

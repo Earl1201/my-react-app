@@ -9,6 +9,8 @@ import ListingDetail from "./pages/ListingDetail.jsx";
 import CreateListing from "./pages/CreateListing.jsx";
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Profile from "./pages/Profile.jsx";
 import Messages from "./pages/Messages.jsx";
 import Orders from "./pages/Orders.jsx";
@@ -40,8 +42,10 @@ function AnimatedRoutes() {
         <Route path="/"             element={<Home />} />
         <Route path="/listings"     element={<Listings />} />
         <Route path="/listings/:id" element={<ListingDetail />} />
-        <Route path="/register"     element={<Register />} />
-        <Route path="/login"        element={<Login />} />
+        <Route path="/register"              element={<Register />} />
+        <Route path="/login"                 element={<Login />} />
+        <Route path="/forgot-password"       element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/profile/:id"  element={<Profile />} />
 
         {/* Protected */}

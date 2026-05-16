@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { validationResult } from "express-validator";
 import pool from "../config/db.js";
 
@@ -164,6 +166,97 @@ export const googleAuth = async (req, res, next) => {
 
     const token = signToken(user.id);
     res.json({ token, user: safeUser(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────────────
+// POST /api/auth/forgot-password
+// ──────────────────────────────────────────────────────────────
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required." });
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const [rows] = await pool.query("SELECT id FROM users WHERE email = ?", [normalizedEmail]);
+
+    // Always return 200 — never reveal whether an email is registered
+    if (rows.length === 0) {
+      return res.json({ message: "If this email is registered, a reset link has been sent." });
+    }
+
+    const userId = rows[0].id;
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await pool.query("DELETE FROM password_reset_tokens WHERE user_id = ?", [userId]);
+    await pool.query(
+      "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [userId, token, expiresAt]
+    );
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+
+    await transporter.sendMail({
+      from: `"NeighborHub" <${process.env.EMAIL_USER}>`,
+      to: normalizedEmail,
+      subject: "Reset your NeighborHub password",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">
+          <h2 style="color:#1E3A5F;margin-bottom:8px;">Reset Your Password</h2>
+          <p style="color:#374151;">Click the button below to reset your NeighborHub password. This link expires in <strong>1 hour</strong>.</p>
+          <a href="${resetLink}" style="display:inline-block;background:#2563EB;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin:20px 0;">
+            Reset Password
+          </a>
+          <p style="color:#6B7280;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
+          <p style="color:#6B7280;font-size:12px;word-break:break-all;">Or copy this link: ${resetLink}</p>
+        </div>
+      `,
+    });
+
+    res.json({ message: "If this email is registered, a reset link has been sent." });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ──────────────────────────────────────────────────────────────
+// POST /api/auth/reset-password
+// ──────────────────────────────────────────────────────────────
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required." });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters." });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT * FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > NOW()",
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "Token is invalid or has expired." });
+    }
+
+    const resetToken = rows[0];
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, resetToken.user_id]);
+    await pool.query("UPDATE password_reset_tokens SET used = 1 WHERE id = ?", [resetToken.id]);
+
+    res.json({ message: "Password reset successfully." });
   } catch (err) {
     next(err);
   }
